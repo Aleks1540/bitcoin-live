@@ -2,89 +2,74 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Live Bitcoin 9:16</title>
+<title>Bitcoin Live 9:16</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-* { box-sizing: border-box; }
-
 body {
   margin: 0;
-  width: 100vw;
-  height: 100vh;
+  background: white;
+  color: black;
+  font-family: 'Oswald', sans-serif;
   overflow: hidden;
-  background: radial-gradient(circle at top, #1f2937, #020617 60%);
-  color: white;
-  font-family: Arial, sans-serif;
 }
 
-.screen {
+/* 9:16 layout */
+.container {
   width: 100vw;
   height: 100vh;
-  aspect-ratio: 9 / 16;
-  padding: 70px 48px;
+  padding: 60px 50px;
   display: grid;
   grid-template-rows: auto auto 1fr auto;
-  gap: 34px;
+  gap: 40px;
+}
+
+/* Header */
+.header {
+  text-align: center;
 }
 
 .kicker {
-  font-size: 24px;
+  font-size: 22px;
   letter-spacing: 4px;
-  opacity: .65;
-  text-align: center;
+  color: #999;
 }
 
-h1 {
-  margin: 0;
-  font-size: 74px;
-  line-height: .95;
-  text-align: center;
+.title {
+  font-size: 80px;
+  margin: 10px 0;
 }
 
 .live {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  font-size: 24px;
-  opacity: .85;
+  font-size: 22px;
+  color: #22c55e;
 }
 
-.dot {
-  width: 14px;
-  height: 14px;
-  background: #22c55e;
-  border-radius: 50%;
-  box-shadow: 0 0 24px #22c55e;
-}
-
-.priceBlock {
+/* Price */
+.price {
   text-align: center;
 }
 
 #price {
-  font-size: 96px;
-  font-weight: 900;
-  line-height: 1;
+  font-size: 110px;
+  font-weight: 700;
 }
 
 #movement {
-  margin-top: 18px;
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 34px;
+  margin-top: 10px;
 }
 
 .up { color: #22c55e; }
 .down { color: #ef4444; }
 
-.chartCard {
-  min-height: 0;
-  background: rgba(255,255,255,.055);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 34px;
-  padding: 26px;
-  box-shadow: 0 30px 90px rgba(0,0,0,.45);
+/* Chart */
+.chartBox {
+  background: #f5f5f5;
+  border-radius: 30px;
+  padding: 20px;
 }
 
 canvas {
@@ -92,80 +77,72 @@ canvas {
   height: 100% !important;
 }
 
+/* Stats */
 .stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: 20px;
 }
 
 .stat {
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 26px;
-  padding: 22px;
+  background: #f0f0f0;
+  padding: 20px;
+  border-radius: 20px;
 }
 
 .label {
   font-size: 18px;
-  opacity: .55;
-  margin-bottom: 8px;
+  color: #777;
 }
 
 .value {
-  font-size: 30px;
-  font-weight: 800;
-}
-
-.updated {
-  grid-column: 1 / 3;
-  text-align: center;
-  font-size: 20px;
-  opacity: .55;
+  font-size: 34px;
+  font-weight: 600;
 }
 </style>
 </head>
 
 <body>
 
-<div class="screen">
-  <div>
-    <div class="kicker">LIVE CRYPTO MARKET</div>
-    <h1>Bitcoin<br>/ USDT</h1>
-    <div class="live"><span class="dot"></span> Live data streaming</div>
+<div class="container">
+
+  <div class="header">
+    <div class="kicker">LIVE MARKET</div>
+    <div class="title">BITCOIN</div>
+    <div class="live">● LIVE DATA</div>
   </div>
 
-  <div class="priceBlock">
-    <div id="price">Loading...</div>
-    <div id="movement">Waiting for market data</div>
+  <div class="price">
+    <div id="price">$--,---</div>
+    <div id="movement">Connecting...</div>
   </div>
 
-  <div class="chartCard">
+  <div class="chartBox">
     <canvas id="chart"></canvas>
   </div>
 
   <div class="stats">
     <div class="stat">
       <div class="label">24H CHANGE</div>
-      <div class="value" id="change">--</div>
+      <div id="change" class="value">--</div>
     </div>
 
     <div class="stat">
-      <div class="label">24H HIGH</div>
-      <div class="value" id="high">--</div>
+      <div class="label">HIGH</div>
+      <div id="high" class="value">--</div>
     </div>
 
     <div class="stat">
-      <div class="label">24H LOW</div>
-      <div class="value" id="low">--</div>
+      <div class="label">LOW</div>
+      <div id="low" class="value">--</div>
     </div>
 
     <div class="stat">
-      <div class="label">PAIR</div>
-      <div class="value">BTC/USDT</div>
+      <div class="label">UPDATED</div>
+      <div id="updated" class="value">--</div>
     </div>
-
-    <div class="updated" id="updated">Last update: --</div>
   </div>
+
 </div>
 
 <script>
@@ -178,18 +155,19 @@ const updatedEl = document.getElementById("updated");
 
 let lastPrice = null;
 
+/* Chart */
 const chart = new Chart(document.getElementById("chart"), {
   type: "line",
   data: {
     labels: [],
     datasets: [{
       data: [],
-      borderWidth: 5,
-      tension: 0.35,
+      borderWidth: 4,
+      tension: 0.3,
       pointRadius: 0,
-      fill: true,
-      borderColor: "rgba(255,255,255,.95)",
-      backgroundColor: "rgba(255,255,255,.07)"
+      borderColor: "#22c55e",
+      backgroundColor: "rgba(34,197,94,0.1)",
+      fill: true
     }]
   },
   options: {
@@ -197,25 +175,18 @@ const chart = new Chart(document.getElementById("chart"), {
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
-      x: {
-        ticks: { color: "rgba(255,255,255,.5)", font: { size: 14 }, maxTicksLimit: 4 },
-        grid: { color: "rgba(255,255,255,.05)" }
-      },
+      x: { display: false },
       y: {
         ticks: {
-          color: "rgba(255,255,255,.5)",
-          font: { size: 14 },
-          maxTicksLimit: 6,
-          callback: value => "$" + Number(value).toLocaleString()
-        },
-        grid: { color: "rgba(255,255,255,.08)" }
+          callback: val => "$" + val.toLocaleString()
+        }
       }
     }
   }
 });
 
-function formatUSD(value) {
-  return "$" + Number(value).toLocaleString("en-US", {
+function formatUSD(v) {
+  return "$" + Number(v).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
@@ -227,31 +198,28 @@ function updateScreen(price, change, high, low) {
   priceEl.innerText = formatUSD(price);
 
   if (lastPrice !== null) {
-    const diff = price - lastPrice;
+    let diff = price - lastPrice;
 
     if (diff > 0) {
       movementEl.innerText = "▲ +" + formatUSD(diff);
       movementEl.className = "up";
-    } else if (diff < 0) {
+    } else {
       movementEl.innerText = "▼ " + formatUSD(diff);
       movementEl.className = "down";
-    } else {
-      movementEl.innerText = "No movement";
-      movementEl.className = "";
     }
   }
 
-  changeEl.innerText = (change >= 0 ? "+" : "") + Number(change).toFixed(2) + "%";
+  changeEl.innerText = change.toFixed(2) + "%";
   changeEl.className = "value " + (change >= 0 ? "up" : "down");
 
   highEl.innerText = formatUSD(high);
   lowEl.innerText = formatUSD(low);
-  updatedEl.innerText = "Last update: " + now;
+  updatedEl.innerText = now;
 
   chart.data.labels.push(now);
   chart.data.datasets[0].data.push(price);
 
-  if (chart.data.labels.length > 60) {
+  if (chart.data.labels.length > 50) {
     chart.data.labels.shift();
     chart.data.datasets[0].data.shift();
   }
@@ -260,19 +228,18 @@ function updateScreen(price, change, high, low) {
   lastPrice = price;
 }
 
+/* Live feed */
 const socket = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@ticker");
 
-socket.onmessage = function(event) {
-  const data = JSON.parse(event.data);
-  updateScreen(Number(data.c), Number(data.P), Number(data.h), Number(data.l));
-};
+socket.onmessage = (e) => {
+  const d = JSON.parse(e.data);
 
-socket.onerror = function() {
-  priceEl.innerText = "Live data unavailable";
-};
-
-socket.onclose = function() {
-  movementEl.innerText = "Connection closed - refresh page";
+  updateScreen(
+    Number(d.c),
+    Number(d.P),
+    Number(d.h),
+    Number(d.l)
+  );
 };
 </script>
 
